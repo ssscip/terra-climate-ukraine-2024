@@ -5,10 +5,15 @@ import json
 from pathlib import Path
 from typing import Any, Dict
 
-import geopandas as gpd
 import numpy as np
 import xarray as xr
-from shapely.geometry import shape, mapping
+from shapely.geometry import shape
+from shapely.prepared import prep
+
+try:  # Attempt geopandas import (preferred for speed)
+    import geopandas as gpd  # type: ignore
+except Exception:  # noqa: BLE001
+    gpd = None  # Fallback path will be used
 
 
 def load_geojson(path: str | Path) -> Dict[str, Any]:
@@ -50,14 +55,26 @@ def make_mask(ds: xr.Dataset | xr.DataArray, geo: Dict[str, Any], lon_name: str 
     else:
         lon2d, lat2d = lon.values, lat.values
 
-    # Vectorized point-in-polygon via geopandas
-    points_gdf = gpd.GeoDataFrame(
-        geometry=gpd.points_from_xy(lon2d.ravel(), lat2d.ravel()), crs="EPSG:4326"
-    )
-    poly_gdf = gpd.GeoDataFrame(geometry=geometries, crs="EPSG:4326")
-    joined = gpd.sjoin(points_gdf, poly_gdf, predicate="within", how="left")
-    mask_flat = ~joined.index_right.isna()
-    mask = mask_flat.values.reshape(lon2d.shape)
+    if gpd is not None:
+        # Vectorized path with geopandas
+        points_gdf = gpd.GeoDataFrame(
+            geometry=gpd.points_from_xy(lon2d.ravel(), lat2d.ravel()), crs="EPSG:4326"
+        )
+        poly_gdf = gpd.GeoDataFrame(geometry=geometries, crs="EPSG:4326")
+        joined = points_gdf.sjoin(poly_gdf, predicate="within", how="left")
+        mask_flat = ~joined.index_right.isna()
+        mask = mask_flat.values.reshape(lon2d.shape)
+    else:
+        # Fallback: pure shapely prepared geometries (slower but OK for demo grid sizes)
+        prepared = [prep(g) for g in geometries]
+        pts_lon = lon2d.ravel(); pts_lat = lat2d.ravel()
+        inside = np.zeros(pts_lon.shape[0], dtype=bool)
+        for i, (x, y) in enumerate(zip(pts_lon, pts_lat)):
+            for pg in prepared:
+                if pg.contains(shape({"type": "Point", "coordinates": (float(x), float(y))})):
+                    inside[i] = True
+                    break
+        mask = inside.reshape(lon2d.shape)
 
     da_mask = xr.DataArray(mask, coords={lat_name: lat, lon_name: lon}, dims=(lat_name, lon_name))
     da_mask.name = "mask"
