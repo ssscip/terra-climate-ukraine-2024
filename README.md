@@ -136,6 +136,14 @@ Synthetic characteristics:
 
 Remove synthetic outputs by deleting the created NetCDFs in `data_products/` and frames in `output/frames_local/` before running with real data.
 
+### Global Anomaly & HTML Preview
+Run synthetic or real global anomaly:
+```bash
+python src/06_global_anomalies.py --synthetic
+python scripts/preview_global_html.py
+```
+Interactive map: `output/global_anomaly_map.html`.
+
 ## License / Ліцензія
 MIT (see `LICENSE`).
 
