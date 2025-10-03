@@ -10,6 +10,14 @@ import xarray as xr
 from shapely.geometry import shape
 
 from utils_io import load_geojson, make_mask, apply_mask
+import math
+
+# Optional: use pyproj if available for better area estimates
+try:  # noqa: SIM105
+    from pyproj import Geod
+    _GEOD = Geod(ellps="WGS84")
+except Exception:  # noqa: BLE001
+    _GEOD = None
 
 CONFIG_PATH = Path("config.yml")
 METRICS_CSV = Path("docs/metrics.csv")
@@ -17,6 +25,9 @@ LST_ANOM = Path("data_products/lst_anomaly_event.nc")
 LST_EVENT = Path("data_products/lst_event.nc")
 NDVI_DELTA = Path("data_products/ndvi_delta_jul_aug.nc")
 BASELINE_DAILY = Path("data_products/lst_baseline_daily.nc")
+MNDWI_BASE = Path("data_products/mndwi_mean_baseline_jul_aug.nc")
+MNDWI_EVENT = Path("data_products/mndwi_mean_event_jul_aug.nc")
+MNDWI_DELTA = Path("data_products/mndwi_delta_jul_aug.nc")
 ROI_DIR = Path("roi")
 
 
@@ -129,6 +140,7 @@ def load_roi(name: str):
     path_map = {
         "ukraine": "ukraine.geojson",
         "zaporizhzhia": "zaporizhzhia.geojson",
+        "water_body": "water_body.geojson",
     }
     for key, fname in path_map.items():
         if name.startswith(key):
@@ -162,6 +174,9 @@ def main():
     event_ds = load_dataset(LST_EVENT)
     ndvi_delta = load_dataset(NDVI_DELTA)
     baseline_daily = load_dataset(BASELINE_DAILY)
+    mndwi_base_ds = load_dataset(MNDWI_BASE)
+    mndwi_event_ds = load_dataset(MNDWI_EVENT)
+    mndwi_delta_ds = load_dataset(MNDWI_DELTA)
 
     # Metric: mean LST anomaly Ukraine
     uk_geo = load_roi("ukraine")
@@ -186,6 +201,95 @@ def main():
                 val = float(ndvi_delta[cand].mean().values)
                 update_metric(rows, "delta_ndvi", f"{val:.4f}")
                 break
+
+    # Water (MNDWI) delta area (km2) using threshold & water_body ROI
+    water_geo = load_roi("water_body")
+    mndwi_threshold = cfg["thresholds"].get("mndwi_water", 0.3)
+
+    def _extract_da(ds, candidates):
+        if ds is None:
+            return None
+        for c in candidates:
+            if c in ds:
+                return ds[c]
+        # fallback first var
+        if len(ds.data_vars):
+            first = list(ds.data_vars)[0]
+            return ds[first]
+        return None
+
+    base_mndwi = _extract_da(mndwi_base_ds, ["MNDWI_base_mean_jul_aug", "MNDWI_base_mean"])  # type: ignore
+    event_mndwi = _extract_da(mndwi_event_ds, ["MNDWI_event_mean_jul_aug", "MNDWI_event_mean"])  # type: ignore
+
+    def estimate_pixel_area_km2(da):
+        # Prefer lon/lat in degrees
+        lon_name = None
+        lat_name = None
+        for cand in ["lon", "x"]:
+            if cand in da.coords:
+                lon_name = cand
+                break
+        for cand in ["lat", "y"]:
+            if cand in da.coords:
+                lat_name = cand
+                break
+        if lon_name in ("x",) and lat_name in ("y",):
+            # Assume projected meters
+            xs = da[lon_name].values
+            ys = da[lat_name].values
+            if xs.size < 2 or ys.size < 2:
+                return None
+            dx = float(np.abs(np.diff(xs)).mean())
+            dy = float(np.abs(np.diff(ys)).mean())
+            return (dx * dy) / 1e6  # m^2 -> km^2
+        if lon_name and lat_name and lon_name != "x" and lat_name != "y":
+            lons = da[lon_name].values
+            lats = da[lat_name].values
+            if lons.size < 2 or lats.size < 2:
+                return None
+            dlon = float(np.abs(np.diff(lons)).mean())
+            dlat = float(np.abs(np.diff(lats)).mean())
+            mean_lat = float(np.nanmean(lats))
+            # Approximate length of a degree
+            km_per_deg_lat = 111.32
+            km_per_deg_lon = 111.32 * math.cos(math.radians(mean_lat))
+            return dlon * km_per_deg_lon * dlat * km_per_deg_lat
+        return None
+
+    def roi_mask(da, geo):
+        if geo is None:
+            return None
+        lon_name = None
+        lat_name = None
+        for cand in ["lon", "x"]:
+            if cand in da.coords:
+                lon_name = cand
+                break
+        for cand in ["lat", "y"]:
+            if cand in da.coords:
+                lat_name = cand
+                break
+        if not lon_name or not lat_name:
+            return None
+        return make_mask(da.to_dataset(name="mndwi"), geo, lon_name=lon_name, lat_name=lat_name)
+
+    if base_mndwi is not None and event_mndwi is not None:
+        mask = roi_mask(base_mndwi, water_geo) if water_geo else None
+        if mask is not None:
+            base_m = apply_mask(base_mndwi, mask)
+            event_m = apply_mask(event_mndwi, mask)
+        else:
+            base_m = base_mndwi
+            event_m = event_mndwi
+        # Binary classification
+        base_water = (base_m > mndwi_threshold)
+        event_water = (event_m > mndwi_threshold)
+        pixel_area = estimate_pixel_area_km2(base_m)
+        if pixel_area is not None:
+            base_area = float(base_water.sum().item()) * pixel_area
+            event_area = float(event_water.sum().item()) * pixel_area
+            delta_area = event_area - base_area
+            update_metric(rows, "delta_water_area", f"{delta_area:.2f}")
 
     write_metrics_csv(METRICS_CSV, rows)
     print(f"Updated metrics {METRICS_CSV}")
