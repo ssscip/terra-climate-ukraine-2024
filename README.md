@@ -144,6 +144,18 @@ python scripts/preview_global_html.py
 ```
 Interactive map: `output/global_anomaly_map.html`.
 
+### If You Cannot Install Conda (Minimal Pip Demo)
+For the synthetic demo only (no real raster geospatial I/O), you can use a lightweight virtual env:
+```
+python -m venv .venv
+./.venv/Scripts/activate    # Windows PowerShell
+python -m pip install --upgrade pip wheel setuptools
+pip install -r requirements-demo.txt
+python scripts/run_all_demo.py --regenerate --no-video
+```
+To build the video install ffmpeg separately (e.g. Chocolatey: `choco install ffmpeg` or download static build and add to PATH) then rerun without `--no-video`.
+Full functionality (rasterio, rioxarray, cartopy) still requires the conda environment because of compiled GDAL dependencies.
+
 ## License / Ліцензія
 MIT (see `LICENSE`).
 

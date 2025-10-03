@@ -1,0 +1,8 @@
+numpy
+xarray
+pandas
+matplotlib
+shapely
+folium
+pyyaml
+tqdm
