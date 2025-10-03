@@ -1,0 +1,9 @@
+metric,value,unit,notes
+mean_LST_anomaly_ukraine,,K,Jul-Aug 2024 vs baseline
+heat_days_zaporizhzhia,,days,>95th percentile baseline
+delta_ndvi,,NDVI,Jul-Aug diff baseline vs 2024
+delta_water_area,,km2,MNDWI threshold=0.3
+italy_peak_LST_anomaly,,K,Heatwave day anomaly
+alps_low_snow_indicator,,percent,Snow cover anomaly (optional)
+distribution_shift_mean,,K,Mean shift (LST)
+distribution_shift_tail,,K,95-99th tail shift

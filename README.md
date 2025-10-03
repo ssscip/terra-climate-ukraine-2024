@@ -1,112 +1,123 @@
 # Terra Climate Extremes (Ukraine 2024 → Global Context)
 
-## (UA) Мета
-Показати екстремальні літні (липень–серпень 2024) аномалії температури поверхні (LST) в Україні, пов’язані індикатори екосистем (NDVI, водні площі), а також розмістити локальні спостереження в глобальному контексті (італійська теплова хвиля та низьке снігове покриття в Альпах).
+## 🇺🇦 Мета / Purpose
+UA: Показати екстремальні літні (липень–серпень 2024) аномалії температури поверхні (LST) в Україні, індикатори екосистем (NDVI, водні площі) та розмістити локальні спостереження у глобальному контексті (Італія – теплова хвиля, Альпи – низький сніг).
+EN: Analyze July–August 2024 Ukrainian land surface temperature extremes (Terra MODIS) vs a 2010–2019 baseline; quantify heat days, vegetation stress (NDVI), water surface change (MNDWI), and embed results in broader European/global context (Italy heatwave, Alpine low snow, global anomaly map).
 
-## (UA) Основні Компоненти
-- Локальні аномалії LST (MOD11A1 + кліматологія з baseline).
-- Heat Days (дні > 95-го перцентиля у Запоріжжі).
-- ΔNDVI (MOD13Q1) липень–серпень 2024 vs baseline.
-- Зміна водної площі за MNDWI (MOD09GA) для вибраної водойми.
-- Глобальна карта аномалій LST (MOD11C1) + фокус на Італію (теплова хвиля) й Альпи (низький сніг / аномалія).
-- Гістограма розподілу (baseline vs 2024) для регіону.
-- Фінальне відео (30–60 с) + метрики + озвучка (VO_SCRIPT.txt).
+## Основні Компоненти / Key Components
+1. LST daily anomalies (MOD11A1 vs DOY climatology).
+2. Heat Days (>95th percentile Zaporizhzhia region).
+3. ΔNDVI (July–August 2024 vs baseline mean) (MOD13Q1).
+4. Water surface / MNDWI change (MOD09GA) for selected water body.
+5. Global July anomaly (MOD11C1) + Italy focus + Alps (optional snow context MOD10A1).
+6. Distribution histogram (baseline vs 2024) for chosen ROI.
+7. Final video (frames + ffmpeg) + narration script (`VO_SCRIPT.txt`).
 
-## (UA) Baseline
-НЕ включати 2024 у baseline. Поточна конфігурація за замовчуванням: 2010–2019.
-Якщо хочеш 2010–2023 — змінити в `config.yml` та перегенерувати кліматологію.
+## Baseline
+- Default Baseline A: 2010–2019 (stable pre-2020 period).
+- Optional Baseline B: 2010–2023 (wider sample). To switch: edit `config.yml` and rerun climatology.
+- Event year (2024) is never included in baseline.
 
-## (UA) Дані (Продукти Terra MODIS / Опційні ASTER)
-| Продукт | Призначення | DOI |
-|---------|-------------|-----|
-| MOD11A1 v061 | Денна LST (тайли) | 10.5067/MODIS/MOD11A1.061 |
-| MOD11C1 v061 | Глобальна LST сітка | 10.5067/MODIS/MOD11C1.061 |
-| MOD13Q1 v061 | NDVI/EVI (16-денний) | 10.5067/MODIS/MOD13Q1.061 |
-| MOD09GA v061 | Відбиття (для NDWI/MNDWI) | 10.5067/MODIS/MOD09GA.061 |
-| MOD10A1 v061 (опц.) | Снігове покриття | 10.5067/MODIS/MOD10A1.061 |
-| ASTER L1T | High-res scene (опц.) | 10.5067/ASTER/AST_L1T.003 |
-| ASTER SR (AST_07XT) | Поверхневі відбиття (опц.) | 10.5067/ASTER/AST_07XT.003 |
+## MODIS / ASTER Data Products
+| Product | Purpose | DOI |
+|---------|---------|-----|
+| MOD11A1 v061 | Daily LST (tiles) | 10.5067/MODIS/MOD11A1.061 |
+| MOD11C1 v061 | Global LST grid | 10.5067/MODIS/MOD11C1.061 |
+| MOD13Q1 v061 | 16‑day NDVI/EVI | 10.5067/MODIS/MOD13Q1.061 |
+| MOD09GA v061 | Surface reflectance (MNDWI) | 10.5067/MODIS/MOD09GA.061 |
+| MOD10A1 v061 (opt) | Snow cover (Alps) | 10.5067/MODIS/MOD10A1.061 |
+| ASTER L1T (opt) | High‑res scenes | 10.5067/ASTER/AST_L1T.003 |
+| ASTER SR (AST_07XT) (opt) | Surface reflectance | 10.5067/ASTER/AST_07XT.003 |
 
-## (UA) Метод Узагальнено
-1. Завантаження baseline тайлів/глобальних сіток → побудова кліматології по DOY.
-2. Аномалії 2024 = LST_2024(DOY) – Climatology(DOY).
-3. Heat Days = кількість днів, де LST (або регіональна середня) > 95-го перцентиля baseline.
-4. NDVI Δ = середній NDVI (лип–сер 2024) – середній NDVI baseline (лип–сер).
-5. MNDWI → водна площа 2024 vs середня baseline.
-6. Глобальна аномалія (липень 2024).
-7. Гістограма baseline vs 2024.
-8. Генерація кадрів (локально → глобально → екстремуми → метрики).
-9. Збірка відео (ffmpeg) + озвучка.
+See `docs/citations.txt` for references.
 
-## (UA) Швидкий Старт
-```
+## Method Overview (UA/EN)
+1. Build DOY climatology (baseline years) from MOD11A1.
+2. Event anomalies: LST_2024(DOY) − Climatology(DOY).
+3. Heat Days: count days above 95th percentile of baseline distribution (Zaporizhzhia ROI).
+4. NDVI Δ: (Jul–Aug 2024 mean) − (Jul–Aug baseline mean).
+5. MNDWI: Compare 2024 mean vs baseline mean (area or index change).
+6. Global July anomaly (MOD11C1) + regional extracts (Italy, Alps).
+7. Histogram: baseline vs 2024 distribution shift.
+8. Frame rendering + video assembly + narration.
+
+## Quick Start
+```bash
 conda env create -f environment.yml
 conda activate terra-climate
-# Додати .netrc (інструкції в notebooks/00_quickstart.ipynb)
-python src/01_download_modis.py
+
+# (1) Download raw data (see src/01_download_modis.py placeholders) into data_raw/
 python src/02_build_climatology.py
 python src/03_compute_anomalies.py
 python src/04_compute_ndvi.py
 python src/05_compute_water_mndwi.py
-python src/06_global_anomalies.py
+python src/06_global_anomalies.py   # optional/global
 python src/07_histogram_distribution.py
 python src/08_metrics.py
 python src/09_generate_frames.py
-bash src/10_make_video.sh
+bash src/10_make_video.sh           # or: pwsh src/10_make_video.ps1
 ```
 
-## (UA) Структура
+## Repository Structure
 ```
-data_raw/           # завантажені HDF/NetCDF
-data_intermediate/  # тимчасові (маски, композити)
-data_products/      # кліматологія, аномалії, метрики
+data_raw/           # downloaded HDF/NetCDF (ignored)
+data_intermediate/  # temporary composites & masks (ignored)
+data_products/      # climatology, anomalies, metrics outputs
 docs/               # citations, metrics.csv
-notebooks/          # Jupyter
-roi/                # geojson полігони
-src/                # скрипти
+notebooks/          # exploratory notebooks
+roi/                # GeoJSON ROIs (Ukraine, Zaporizhzhia, Italy, Alps, water)
+src/                # pipeline scripts + I/O utilities
 output/
-  frames_*          # кадри
-  video/            # фінальні відео
+  frames_*          # generated frames
+  video/            # final mp4/gif
 ```
 
-## (UA) Файли Конфігурації
-`config.yml` — baseline роки, часові інтервали, пороги (MNDWI, percentiles).
+## Pipeline Steps
+| Step | Script | Output (Representative) | Status |
+|------|--------|-------------------------|--------|
+| 1 | 01_download_modis.py | data_raw/* | Placeholder/manual |
+| 2 | 02_build_climatology.py | data_products/lst_climatology.nc; lst_baseline_daily.nc | Active |
+| 3 | 03_compute_anomalies.py | lst_event.nc; lst_anomaly_event.nc | Active |
+| 4 | 04_compute_ndvi.py | ndvi_base_mean.nc; ndvi_event_mean.nc; ndvi_delta_jul_aug.nc | Active |
+| 5 | 05_compute_water_mndwi.py | mndwi_base_mean.nc; mndwi_event_mean.nc; mndwi_delta.nc | Active (needs QA) |
+| 6 | 06_global_anomalies.py | (planned) global_july_anomaly.nc | Placeholder |
+| 7 | 07_histogram_distribution.py | docs/distribution_histogram.csv | Active (limited) |
+| 8 | 08_metrics.py | docs/metrics.csv (appended) | Partial (more metrics TBD) |
+| 9 | 09_generate_frames.py | output/frames_local/*.png | Active |
+| 10 | 10_make_video.sh / .ps1 | output/video/final_video.mp4 | Active |
 
-## (UA) Озвучка
-Текст у `VO_SCRIPT.txt`. Можна адаптувати (≈55 сек при середній швидкості).
+## Configuration
+`config.yml` centralizes:
+- baseline years
+- event year
+- focus date window (e.g., Jul–Aug)
+- percentile thresholds (e.g., 0.95 heat days)
+- MNDWI threshold
+- video parameters (fps, width)
 
----
+## Narration / Voice Over
+Edit `VO_SCRIPT.txt` (≈50–60 s). Sync any updated metrics before final recording.
 
-## (EN) Summary
-This repository analyzes Summer 2024 surface temperature extremes in Ukraine (MODIS Terra), derives anomalies against a 2010–2019 (default) baseline, quantifies “heat days,” NDVI and water surface changes, then places them in a global context (Italy heatwave & Alpine low snow). Outputs: reproducible pipeline, metrics, final video, and narration script.
+## TODO / Roadmap
+- [ ] Real LAADS/LP DAAC API download + retry logic
+- [ ] MODIS QC bitmask filtering (cloud / emissivity / snow flags)
+- [ ] Robust MNDWI area extraction (threshold & polygon intersection)
+- [ ] Add water & snow metrics into `docs/metrics.csv`
+- [ ] Global anomaly (MOD11C1) implementation
+- [ ] Optional MOD10A1 Alps snow anomaly
+- [ ] Percentile tail metrics (97.5 / 99%)
+- [ ] Dask chunking & performance tuning
+- [ ] GitHub Actions: add tests (currently only lint)
+- [ ] Potential Git LFS for large NetCDF outputs
+- [ ] Enhanced color maps & legend layout
 
-### Data Products
-See citations in `docs/citations.txt`. Do NOT include the target event year in baseline (avoid contamination).
+## License / Ліцензія
+MIT (see `LICENSE`).
 
-### Pipeline Outline
-1. Download & QA filter.
-2. Build day-of-year climatology.
-3. Compute LST anomalies + percentile exceedances.
-4. Vegetation / water indices (NDVI, MNDWI).
-5. Global anomalies & contrasting regions.
-6. Distribution shifts (histogram).
-7. Frame generation & final video assembly.
+## Credits / Кредити
+Data: NASA EOSDIS LP DAAC (Terra MODIS; optional ASTER).  
+Processing & analysis: Your names / contributors.  
+Please cite DOIs in `docs/citations.txt`.
 
----
-
-## (UA/EN) TODO (Initial Checklist)
-- [ ] Confirm baseline final (A=2010–2019 or B=2010–2023).
-- [ ] Add ROI geojson (Ukraine, Zaporizhzhia, Italy box, Alps box, water_body).
-- [ ] Implement real LAADS/LP DAAC API listing (placeholders now).
-- [ ] Fill metrics after computations.
-- [ ] Final color palette validation.
-- [ ] Add optional ASTER scenes if needed.
-
-## Ліцензія
-MIT (див. LICENSE).
-
-## Кредити
-Data courtesy of NASA EOSDIS (Terra MODIS, optionally ASTER).
-Processing & analysis: (ваші імена).
-
----
+## Acknowledgements / Подяки
+Scaffold prepared for rapid, reproducible climate anomaly assessment integrating local Ukrainian extremes into global context.

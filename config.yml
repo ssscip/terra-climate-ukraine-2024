@@ -1,0 +1,23 @@
+baseline:
+  start_year: 2010
+  end_year: 2019
+event_year: 2024
+periods:
+  focus_start: "2024-07-01"
+  focus_end: "2024-08-31"
+  global_focus_month: 7
+regions:
+  - ukraine_roi
+  - zaporizhzhia_roi
+  - water_body_roi
+  - italy_roi
+  - alps_roi
+thresholds:
+  heat_percentile: 95
+  mndwi_water: 0.3
+  ndvi_scale_factor: 0.0001
+  lst_scale_factor: 0.02
+video:
+  fps: 6
+  width: 1080
+  max_duration_s: 60

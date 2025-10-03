@@ -1,0 +1,32 @@
+Git is not currently available in this environment PATH.
+Manual installation steps (choose one):
+
+1. Winget (if available in your user session):
+   winget install --id Git.Git -e --source winget
+
+2. Chocolatey (if choco installed):
+   choco install git -y
+
+3. Official installer:
+   Download https://git-scm.com/download/win and run the installer.
+   During install: select "Git from the command line" option.
+
+After install, reopen VS Code / PowerShell, then run:
+   cd C:\workspace
+   git init
+   git add .
+   git commit -m "Initial scaffold: Terra Climate Extremes project"
+   git branch -M main
+   git remote add origin https://github.com/USERNAME/terra-climate-extremes.git
+   git push -u origin main
+
+If behind corporate proxy, configure:
+   git config --global http.proxy http://user:pass@proxy:port
+   git config --global https.proxy http://user:pass@proxy:port
+
+Verify:
+   git --version
+
+Troubleshooting:
+ - If 'where git' returns nothing, PATH not updated yet; open a new terminal.
+ - If push fails with auth error, create a Personal Access Token and use it as password.

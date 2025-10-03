@@ -1,0 +1,1 @@
+{ "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": {"name": "Ukraine_simplified"}, "geometry": { "type": "Polygon", "coordinates": [[[22.0, 44.0],[40.5, 44.0],[40.5, 52.5],[22.0, 52.5],[22.0, 44.0]]] } } ] }

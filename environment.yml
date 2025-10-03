@@ -1,0 +1,26 @@
+name: terra-climate
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - xarray
+  - rioxarray
+  - rasterio
+  - geopandas
+  - shapely
+  - pyproj
+  - dask
+  - netCDF4
+  - h5py
+  - numpy
+  - pandas
+  - matplotlib
+  - cartopy
+  - tqdm
+  - pyyaml
+  - scikit-image
+  - pip
+  - pip:
+      - satpy
+      - ffmpeg-python
+      - ruff

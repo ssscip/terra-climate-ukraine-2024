@@ -1,0 +1,1 @@
+{ "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": {"name": "Reservoir_example"}, "geometry": { "type": "Polygon", "coordinates": [[[35.0,47.0],[35.3,47.0],[35.3,47.3],[35.0,47.3],[35.0,47.0]]] } } ] }

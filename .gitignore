@@ -1,0 +1,12 @@
+Git/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+data_raw/
+data_intermediate/
+data_products/
+output/frames_/
+output/video/*.mp4
+output/video/*.gif
+.DS_Store
+tmp/
