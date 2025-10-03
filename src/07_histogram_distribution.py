@@ -6,7 +6,7 @@ import csv
 import numpy as np
 import xarray as xr
 
-BASELINE_PATH = Path("data_products/lst_climatology.nc")  # Ideally raw baseline, but we only have climatology.
+BASELINE_PATH = Path("data_products/lst_baseline_daily.nc")  # Prefer full baseline daily stack if available.
 EVENT_PATH = Path("data_products/lst_event.nc")
 OUT_CSV = Path("docs/distribution_histogram.csv")
 
@@ -35,22 +35,56 @@ def main():
 
     hist_event, bins = np.histogram(arr_event, bins=50)
 
-    # Placeholder baseline: use climatology values aggregated
+    # Baseline distribution: use daily baseline stack if present
     if BASELINE_PATH.exists():
-        clim = xarray_open(BASELINE_PATH)
-        lst_clim = clim["LST_climatology"]
-        clim_vals = lst_clim.values.ravel()
-        clim_vals = clim_vals[~np.isnan(clim_vals)]
-        hist_base, _ = np.histogram(clim_vals, bins=bins)
+        base_ds = xarray_open(BASELINE_PATH)
+        base_var = None
+        for cand in ["LST_baseline_daily", "LST_climatology", "LST_Day_1km"]:
+            if cand in base_ds:
+                base_var = base_ds[cand]
+                break
+        if base_var is None:
+            print("No suitable baseline variable.")
+            hist_base = [0] * len(hist_event)
+            base_vals = np.array([])
+        else:
+            if "time" in base_var.coords:
+                # Restrict to July-Aug to match event window
+                base_sub = base_var.sel(time=base_var.time.dt.month.isin([7, 8]))
+            else:
+                base_sub = base_var
+            base_vals = base_sub.values.ravel()
+            base_vals = base_vals[~np.isnan(base_vals)]
+            hist_base, _ = np.histogram(base_vals, bins=bins)
     else:
         print("No baseline distribution available; writing event only.")
-        hist_base = [""] * len(hist_event)
+        hist_base = [0] * len(hist_event)
+        base_vals = np.array([])
+
+    # Compute distribution shift metrics (mean shift, tail shift 95-99th)
+    mean_shift = ""
+    tail_shift = ""
+    if base_vals.size > 0:
+        mean_shift = float(np.nanmean(arr_event) - np.nanmean(base_vals))
+        # Tail shift: difference between mean of top 5% for event and baseline
+        def tail_mean(arr):
+            if arr.size == 0:
+                return np.nan
+            thresh = np.percentile(arr, 95)
+            return np.nanmean(arr[arr >= thresh])
+        tm_event = tail_mean(arr_event)
+        tm_base = tail_mean(base_vals)
+        tail_shift = float(tm_event - tm_base) if not np.isnan(tm_event) and not np.isnan(tm_base) else ""
 
     with OUT_CSV.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["bin_left", "bin_right", "baseline_count", "event_count"])
+        writer.writerow(["bin_left", "bin_right", "baseline_count", "event_count", "mean_shift", "tail_shift_95p"])
         for i in range(len(hist_event)):
-            writer.writerow([bins[i], bins[i + 1], hist_base[i] if hist_base[i] != "" else "", hist_event[i]])
+            # Only write mean/tail shift on first row to avoid repetition
+            if i == 0:
+                writer.writerow([bins[i], bins[i + 1], hist_base[i], hist_event[i], mean_shift, tail_shift])
+            else:
+                writer.writerow([bins[i], bins[i + 1], hist_base[i], hist_event[i], "", ""])
 
     print(f"Wrote histogram {OUT_CSV}")
 

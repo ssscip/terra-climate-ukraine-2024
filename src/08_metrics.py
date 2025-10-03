@@ -177,6 +177,8 @@ def main():
     mndwi_base_ds = load_dataset(MNDWI_BASE)
     mndwi_event_ds = load_dataset(MNDWI_EVENT)
     mndwi_delta_ds = load_dataset(MNDWI_DELTA)
+    # Distribution histogram (for mean / tail shift)
+    dist_hist_csv = Path("docs/distribution_histogram.csv")
 
     # Metric: mean LST anomaly Ukraine
     uk_geo = load_roi("ukraine")
@@ -290,6 +292,23 @@ def main():
             event_area = float(event_water.sum().item()) * pixel_area
             delta_area = event_area - base_area
             update_metric(rows, "delta_water_area", f"{delta_area:.2f}")
+
+    # If histogram CSV exists, extract mean/tail shift from first row
+    if dist_hist_csv.exists():
+        try:
+            import csv as _csv
+            with dist_hist_csv.open("r", encoding="utf-8") as fh:
+                r = _csv.DictReader(fh)
+                first = next(r, None)
+                if first:
+                    ms = first.get("mean_shift")
+                    ts = first.get("tail_shift_95p")
+                    if ms not in (None, ""):
+                        update_metric(rows, "distribution_shift_mean", f"{float(ms):.2f}")
+                    if ts not in (None, ""):
+                        update_metric(rows, "distribution_shift_tail", f"{float(ts):.2f}")
+        except Exception as e:  # noqa: BLE001
+            print(f"Failed to parse distribution histogram metrics: {e}")
 
     write_metrics_csv(METRICS_CSV, rows)
     print(f"Updated metrics {METRICS_CSV}")
