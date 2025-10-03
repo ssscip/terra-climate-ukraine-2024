@@ -10,6 +10,30 @@ import subprocess
 import sys
 from pathlib import Path
 
+REQUIRED_IMPORTS = [
+    ("numpy", "numpy"),
+    ("xarray", "xarray"),
+]
+
+def check_deps():
+    missing = []
+    for mod, disp in REQUIRED_IMPORTS:
+        try:
+            __import__(mod)
+        except Exception:  # noqa: BLE001
+            missing.append(disp)
+    if missing:
+        print("\n[ERROR] Відсутні пакети: " + ", ".join(missing))
+        print("Python інтерпретатор:", sys.executable)
+        print("\nЯк виправити (варіант A – conda, рекомендовано):")
+        print("  conda env create -f environment.yml")
+        print("  conda activate terra-climate")
+        print("\nЯкщо conda немає (варіант B – тимчасово pip мінімально):")
+        print("  python -m pip install --upgrade pip")
+        print("  python -m pip install numpy xarray pandas matplotlib shapely")
+        print("\nПісля установки перезапусти:  python scripts/run_all_demo.py --regenerate")
+        sys.exit(1)
+
 ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -26,6 +50,8 @@ def main():
     ap.add_argument("--regenerate", action="store_true", help="Force regenerate synthetic data")
     ap.add_argument("--no-video", action="store_true", help="Skip video creation")
     args = ap.parse_args()
+
+    check_deps()
 
     data_event = ROOT / "data_products" / "lst_event.nc"
     if args.regenerate or not data_event.exists():
