@@ -27,7 +27,7 @@ python src/07_histogram_distribution.py
 
 if (-not $SkipVideo) {
     Write-Host "[run_all_demo] Creating video (PowerShell variant)..."
-    python src/10_make_video.ps1
+    powershell -ExecutionPolicy Bypass -File src/10_make_video.ps1
 }
 
 Write-Host "[run_all_demo] Done. See output/video and output/frames_local."
