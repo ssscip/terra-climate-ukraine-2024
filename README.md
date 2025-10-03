@@ -111,6 +111,31 @@ Edit `VO_SCRIPT.txt` (≈50–60 s). Sync any updated metrics before final recor
 - [ ] Potential Git LFS for large NetCDF outputs
 - [ ] Enhanced color maps & legend layout
 
+## Demo Mode (No Real MODIS Data)
+To quickly preview the pipeline outputs without downloading MODIS, generate synthetic data that mimics baseline and 2024 anomalies:
+
+```bash
+conda activate terra-climate  # after creating environment
+python scripts/demo_generate_mock_data.py --run-metrics --make-frames
+```
+
+This will create synthetic NetCDF files in `data_products/`, update `docs/metrics.csv`, and (with `--make-frames`) produce anomaly frames in `output/frames_local`. You can then run:
+
+```bash
+python src/10_make_video.ps1  # PowerShell
+# OR (Linux/macOS)
+bash src/10_make_video.sh
+```
+
+Resulting video will appear in `output/video/` (ensure `ffmpeg` available or install via system package or `conda install ffmpeg`).
+
+Synthetic characteristics:
+- Heat anomaly localized (~+5 K peak) over central grid.
+- NDVI stress patch (negative delta) and mild water area reduction (MNDWI).
+- Spatial grid spans lon 20–44E, lat 40–56N to overlap Ukraine ROI polygons.
+
+Remove synthetic outputs by deleting the created NetCDFs in `data_products/` and frames in `output/frames_local/` before running with real data.
+
 ## License / Ліцензія
 MIT (see `LICENSE`).
 
