@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/terratales/event.schema.json",
+  "title": "TerraTalesEvent",
+  "type": "object",
+  "required": [
+    "id", "title", "category", "start_date", "end_date", "year",
+    "lat", "lon", "geometry_type", "geometry",
+    "terra_instruments", "products", "metrics", "narrative", "sources", "confidence"
+  ],
+  "properties": {
+    "id": {"type": "string", "pattern": "^evt_\\d{4}_[a-z0-9_\-]+$"},
+    "title": {"type": "string", "minLength": 3},
+    "category": {"type": "string", "enum": ["wildfire","dust_storm","snow_anomaly","volcanic","tsunami","flood","heatwave","cryosphere_change","land_use_shift","aerosol_plume"]},
+    "start_date": {"type": "string", "format": "date"},
+    "end_date": {"type": "string", "format": "date"},
+    "year": {"type": "integer", "minimum": 2000, "maximum": 2100},
+    "lat": {"type": "number", "minimum": -90, "maximum": 90},
+    "lon": {"type": "number", "minimum": -180, "maximum": 180},
+    "geometry_type": {"type": "string", "enum": ["Point","Polygon"]},
+    "geometry": {"type": "object"},
+    "terra_instruments": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "products": {"type": "array", "items": {"type": "object", "required":["name","variable","asset"],
+      "properties": {
+        "name": {"type": "string"},
+        "variable": {"type": "string"},
+        "asset": {"type": "string"},
+        "stat": {"type": "object"}
+      }
+    }},
+    "media": {"type": "object", "properties": {"thumbnail": {"type": "string"}, "animation": {"type": "string"}}},
+    "metrics": {"type": "object"},
+    "narrative": {"type": "object", "required": ["short"], "properties": {"short": {"type": "string"}, "long": {"type": "string"}}},
+    "sources": {"type": "array", "items": {"type": "object", "required":["type","ref"], "properties": {"type": {"type":"string"}, "ref": {"type":"string"}}}},
+    "confidence": {"type": "string", "enum": ["low","medium","high"]}
+  },
+  "additionalProperties": true
+}

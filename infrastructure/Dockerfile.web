@@ -1,0 +1,8 @@
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY web/package.json web/package-lock.json* web/tsconfig.json web/ ./web/
+RUN cd web && npm install && npm run build || (echo "Build failed" && exit 1)
+
+FROM nginx:1.27-alpine
+COPY --from=build /app/web/dist /usr/share/nginx/html
+EXPOSE 80

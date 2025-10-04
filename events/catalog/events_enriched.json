@@ -1,0 +1,26 @@
+[
+  {
+    "id": "evt_2024_zaporizhzhia_heat",
+    "title": "Summer 2024 Zaporizhzhia Heatwave",
+    "category": "heatwave",
+    "start_date": "2024-07-01",
+    "end_date": "2024-08-31",
+    "year": 2024,
+    "lat": 47.83,
+    "lon": 35.15,
+    "geometry_type": "Point",
+    "geometry": {"type":"Point","coordinates":[35.15,47.83]},
+    "terra_instruments": ["MODIS"],
+    "products": [
+      {"name":"MOD11A1","variable":"LST_Day","asset":"globe_assets/evt_2024_zaporizhzhia_heat/lst_anom.png","stat":{"mean_anom_K":6.2}}
+    ],
+    "media": {"thumbnail":"globe_assets/evt_2024_zaporizhzhia_heat/thumb.jpg","animation":"globe_assets/evt_2024_zaporizhzhia_heat/anim.mp4"},
+    "metrics": {"area_km2": 5200, "peak_anomaly_K": 7.1, "ndvi_change": -0.12},
+    "narrative": {"short":"Persistent hot spell over southeastern Ukraine.","long":"During July–August 2024, Zaporizhzhia region experienced sustained land surface temperature anomalies exceeding historical 95th percentile thresholds, stressing vegetation and water resources."},
+    "sources": [
+      {"type":"doi","ref":"10.5067/MODIS/MOD11A1.061"},
+      {"type":"article","ref":"https://earthobservatory.nasa.gov/"}
+    ],
+    "confidence": "high"
+  }
+]

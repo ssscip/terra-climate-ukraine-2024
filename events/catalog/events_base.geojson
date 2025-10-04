@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "evt_2024_zaporizhzhia_heat",
+        "title": "Summer 2024 Zaporizhzhia Heatwave",
+        "category": "heatwave",
+        "start_date": "2024-07-01",
+        "end_date": "2024-08-31",
+        "year": 2024,
+        "terra_instruments": ["MODIS"],
+        "confidence": "high"
+      },
+      "geometry": {"type": "Point", "coordinates": [35.15, 47.83]}
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../api:/app/api
+      - ../events:/app/events
+      - ../globe_assets:/app/globe_assets
+    environment:
+      - TERRATALES_CORS_ORIGINS=*
+    command: uvicorn api.app.main:app --host 0.0.0.0 --port 8000 --reload
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile.web
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE=http://localhost:8000/api
+    volumes:
+      - ../web:/app/web
+    command: sh -c "cd web && npm run dev -- --host"
