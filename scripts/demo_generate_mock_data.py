@@ -64,8 +64,8 @@ def generate_baseline(years=range(2010, 2020)):
     # Write baseline daily
     da.to_dataset(name="LST_baseline_daily").to_netcdf(DATA_PROD / "lst_baseline_daily.nc")
     # Climatology by DOY
-    doy = xr.DataArray(day_of_year, coords={"time": time}, dims="time")
-    da_doy = da.assign_coords(doy=("time", doy))
+    # assign DOY as plain numpy array to avoid ambiguity
+    da_doy = da.assign_coords(doy=("time", day_of_year))
     clim = da_doy.groupby("doy").mean("time")
     clim.name = "LST_climatology"
     clim.to_dataset(name="LST_climatology").to_netcdf(DATA_PROD / "lst_climatology.nc")
