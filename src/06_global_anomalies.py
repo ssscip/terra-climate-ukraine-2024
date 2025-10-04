@@ -58,9 +58,9 @@ def synthetic_global(cfg):
     event = base + anomaly_pattern
     anomaly = event - base
     ds = xr.Dataset({
-        "LST_global_baseline_mean": ("lat", "lon", base.astype("float32")),
-        "LST_global_event": ("lat", "lon", event.astype("float32")),
-        "LST_global_anomaly": ("lat", "lon", anomaly.astype("float32")),
+        "LST_global_baseline_mean": (("lat", "lon"), base.astype("float32")),
+        "LST_global_event": (("lat", "lon"), event.astype("float32")),
+        "LST_global_anomaly": (("lat", "lon"), anomaly.astype("float32")),
     }, coords={"lat": lats, "lon": lons})
     ds.to_netcdf(OUT_PATH)
     print(f"Wrote synthetic global anomaly {OUT_PATH}")
