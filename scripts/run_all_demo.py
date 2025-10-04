@@ -69,16 +69,17 @@ def main():
 
     # Video
     if not args.no_video:
-        # Prefer PowerShell script if ffmpeg present; else silently skip
-        ps1 = ROOT / "src" / "10_make_video.ps1"
-        if ps1.exists():
-            # On Windows run via powershell executable
-            run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps1)])
+        import shutil
+        if shutil.which("ffmpeg") is None:
+            print("[warn] ffmpeg not found -> пропускаю створення відео (встанови ffmpeg та перезапусти без --no-video)")
         else:
-            # fallback: bash script if available (rare on pure Windows)
-            sh = ROOT / "src" / "10_make_video.sh"
-            if sh.exists():
-                run(["bash", str(sh)])
+            ps1 = ROOT / "src" / "10_make_video.ps1"
+            if ps1.exists():
+                run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps1)])
+            else:
+                sh = ROOT / "src" / "10_make_video.sh"
+                if sh.exists():
+                    run(["bash", str(sh)])
     print("Synthetic demo completed. Check output/video and output/frames_local.")
 
 
