@@ -48,8 +48,10 @@ def synthetic_global(cfg):
     lons = np.arange(-180, 180.1, 1.0)
     lats = np.arange(-60, 81, 1.0)
     # Baseline mean ~ 290K with latitudinal gradient
-    lat_grad = 290 - 0.3 * (np.abs(lats[:, None]))
-    base = lat_grad + np.random.normal(0, 0.4, lat_grad.shape)
+    # Create a 2D baseline (lat, lon). Previous version produced (lat,1) causing xarray shape issues.
+    lat_grad = 290 - 0.3 * (np.abs(lats))  # shape (lat,)
+    base_2d = np.repeat(lat_grad[:, None], lons.size, axis=1)
+    base = base_2d + np.random.normal(0, 0.4, base_2d.shape)
     # Event anomaly patch over Europe (lon 0–40, lat 35–55)
     lon_grid, lat_grid = np.meshgrid(lons, lats)
     anomaly_pattern = np.exp(-(((lon_grid - 20) ** 2) / 400 + ((lat_grid - 45) ** 2) / 150)) * 4.0
